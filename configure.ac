@@ -26,7 +26,10 @@ fi
 
 case "$(uname -s)" in
   Linux | *BSD)
-    LIBS="$LIBS -lutil -lcrypt"
+    LIBS+=" -lutil"
+    AC_CHECK_LIB(crypt, crypt, [LIBS+=" -lcrypt"], [
+        AC_MSG_ERROR([Cannot find libcrypt.])
+    ])
     AC_DEFINE(NOSTREAMS, 1, [Don't use SVR4 streams support in ttyrec.])
   ;;
 esac
