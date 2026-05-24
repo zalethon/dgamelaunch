@@ -428,6 +428,8 @@ DGLFILE="dgamelaunch.`date +%Y%m%d`"
 LIBS="$LIBS `findlibs /$CURDIR/dgamelaunch`"
 cp "/$CURDIR/dgamelaunch" "bin/$DGLFILE"
 ln -s "$DGLFILE" bin/dgamelaunch
+# THIS IS IMPORTANT to make watch_games/shmem function
+ln -s "/bin/dgamelaunch .
 
 # Creating sqlite db
 if [ -n "$SQLITE_DBFILE" ]; then

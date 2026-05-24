@@ -131,11 +131,6 @@ will not see a shell when it exits.
 
 Congrats on your new server...
 
-More resources for troubleshooting vis NetHack:
-https://nethackwiki.com/wiki/User:Paxed/HowTo_setup_dgamelaunch
-Vis dgamelaunch and crawl:
-https://github.com/tarballqc/dcss-server-install/
-
 
 # Dungeon Crawl Stone Soup
 First, though, here's how to install Dungeon Crawl Stone Soup:
@@ -159,7 +154,8 @@ sudo chown -R games:games /opt/dgamelaunch/var
 
 That's it!
 
-# ISSUES
-If you find a bug, report it, I guess.
-
-Known issues rn: watching other players doesn't work, at all! I haven't been able to track this down yet.
+# Resources
+More resources for troubleshooting vis NetHack:
+https://nethackwiki.com/wiki/User:Paxed/HowTo_setup_dgamelaunch
+Vis dgamelaunch and crawl:
+https://github.com/tarballqc/dcss-server-install/
