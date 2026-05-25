@@ -292,8 +292,8 @@ Congrats on your new server...
 # Dungeon Crawl Stone Soup
 First, though, here's how to install Dungeon Crawl Stone Soup:
 1) obtain the source, navigate to that directory
-2) modify <src>/crawl-ref/source/AppHdr.h, and set DGAMELAUNCH (and tweak other
-    settings which interest you)
+2) modify `<src>/crawl-ref/source/AppHdr.h`, and set `DGAMELAUNCH` (and tweak
+    other settings which interest you)
 3) `sudo make install prefix=/ DATADIR=/etc/dcss0341 SAVEDIR=/var/dcss0341 USE_DGAMELAUNCH=1`
 4) navigate to the directory with these scripts (dgamelaunch source dir)
 5) ...
