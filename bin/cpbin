@@ -13,74 +13,122 @@
 # [DIRECTORY] defaults to "$HOME/chroot"
 #
 # OPTIONS
-# -b|-B|--lib [dir]	Sets BINDIR, the directory for the binary to live.
+# --bindir [dir]	Sets BINDIR, the directory for the binary to live.
 #			Defaults to the binary's dirname.
-#			Path is from inside the chroot! So -b /bin will install
-#			binaries in /<DIRECTORY>/bin
+#			Path is from inside the chroot! So -b /bin will
+#			install binaries in /<DIRECTORY>/bin
 
-# -l|-L|--lib [dir]	Sets LIBDIR, the directory for libraries to live.
+# --libdir [dir]	Sets LIBDIR, the directory for libraries to live.
 #			Defaults to the library's dirname, for each library.
 #			Path is from inside the chroot! See above.
 
-# -n|--libs-only|--nobin  Causes the program to refrain from copying the
-#			  binaries; it only copies libraries.
+# --only-libs  		Causes the program to refrain from copying the
+#			binaries; it only copies libraries. It still makes
+#                       the directory, unless DRYRUN is set.
 
-# -N|--bin-only|--nolibs  Causes the program to refrain from copying the
-#			  libraries; it only copies binaries.
+# --only-bin	  	Causes the program to refrain from copying the
+#			libraries; it only copies binaries. It still makes
+#                       the directory, unless DRYRUN is set.
 
-# -d|-D|--dirs-only	Creates the requisite directory structure only. Does
+# --only-dirs		Creates the requisite directory structure only. Does
 #			not copy any files. Equivalent to setting both
 #			NOBIN and NOLIBS.
 
-# --dry			Causes the program to only output what it would do, if
-#			it had not received the --dry option. ie do nothing
+# --dry			Causes the program to output what it would do,
+#			ie it had not received the --dry option. ie do nothing
 
-# -q|-s|--quiet|--silent  Causes the program to refrain from making extraneous
-#			  noises.
+# --quiet	  	Causes the program to refrain from making extraneous
+#			noises.
 
-# -h|-?|--help|--usage	Display this help message.
-# ^^ line 41
+# --really-quiet	Causes the program to refrain from even reporting
+#                       errors...
+
+# --help		Display this help message.
+# ^^ line 46
 
 set -e
 umask 022
 
-# Some other programs
+##### Some other programs
 cpbindir=`dirname $0`
 sanepath=$cpbindir/sanepath
 findlibs=$cpbindir/findlibs
+cpbinname="cpbin"
 
-# take options
-while [[ $# -gt 0 ]]; do
+##### functions
+# Echo a message absent the QUIET env var.
+say() { [ "$QUIET" -lt 2 ] && printf "$cpbinname: $1\n" || :; }
+
+# Echo a message to stderr.
+err() { [ "$QUIET" -lt 1 ] && >&2 echo "$cpbinname - ERROR: $1" || :; }
+
+# Echo to stderr and exit 1.
+errexit() { err "$1"; exit 1; }
+
+# mkdirif <label> <dir>
+# Make <dir> if it doesn't exist. Print an error if it does exist, and wasn't
+# made by this script. <label> is just a name for the printed messages
+# and errors.
+# If DRYRUN is set, only runs checks and prints messages/error. (no mkdir)
+mkdirif() {
+  [ ! -d "$2" ] && {
+    say "Making $1 directory at $2";
+    [ -z "$MKED" ] && MKED=$2 || MKED="$MKED $2";
+  } || {
+    [ -z "`echo $MKED | grep $2`" ] && err "$2/ already exists." || :;
+  }
+  [ -z "$DRYRUN" ] && mkdir -p "$2" || :;
+}
+
+# cpif <source> <dir>
+# Copy <source> to directory <dir> if it doesn't exist there. Print an error
+# if it does exist.
+# If DRYRUN is set, only runs checks and prints messages/errors.
+cpif() {
+  [ ! -e "$2/`basename $1`" ] && {
+    say "Copying $1 to $2.";
+  } || {
+    err "$2/`basename $1` already exists.";
+  }
+  [ -z "$DRYRUN" ] && cp "$1" "$2/" || :;
+}
+
+##### take options
+while [ "$#" -gt 0 ]; do
   case $1 in
-    -h|--help|--usage|-?|--?)
-      printf "`sed -n '3,41p;41q' $0 | tr -d "#"`\n\n"
+    --help)
+      printf "`sed -n '3,46p;46q' $0 | tr -d "#"`\n\n"
       exit 0
       ;;
-    -b|-B|--bin)
+    --bindir)
       BINDIR=`$sanepath $2`
       shift
       shift
       ;;
-    -l|-L|--lib)
+    --libdir)
       LIBDIR=`$sanepath $2`
       shift
       shift
       ;;
-    -n|--libs-only|--nobin)
+    --only-libs)
       NOBIN=1
       shift
       ;;
-    -N|--bin-only|--nolibs)
+    --only-bin)
       NOLIBS=1
       shift
       ;;
-    -d|-D|--dirs-only)
+    --only-dirs)
       NOBIN=1
       NOLIBS=1
       shift
       ;;
-    -q|-s|--quiet|--silent)
+    --quiet)
       QUIET=1
+      shift
+      ;;
+    --really-quiet)
+      QUIET=2
       shift
       ;;
     --dry)
@@ -101,51 +149,44 @@ while [[ $# -gt 0 ]]; do
       ;;
   esac
 done
+# If no options were passed, print help.
+[ -z "$1" ] && { printf "`sed -n '3,29p;29q' $0 | tr -d "#"`\n\n"; exit 0; }
 
-[ -z "$1" ] && ( printf "`sed -n '3,29p;29q' $0 | tr -d "#"`\n\n"; exit 0; )
-
-# functions
-say() {
-  [ -z "$QUIET" ] && printf "$1\n"
-}
-
-mkdirif() {
-  if [ ! -d "$2" ]; then
-    say "Making $1 directory at $2"
-    [ -z "$DRYRUN" ] && mkdir -p "$2" || say " - (dry run)"
-  fi;
-}
-
-cpif() {
-  say "  - Copying $1 to $2"
-  [ -z "$DRYRUN" ] && cp "$1" "$2/" || say "   - (dry run)"
-}
+##### set up defaults
+# QUIET=0
+[ -z "$QUIET" ] && QUIET=0 || :;
+# CHROOT=$HOME/chroot
+[ -z "$2" ] && {
+    say "No chroot given; using $HOME/chroot";
+    CHROOT="$HOME/chroot";
+  } || {
+    CHROOT="$2";
+  }
+# Find the bin the user's talking about
+# USEBIN=`which $1`
+USEBIN=`which $1` || errexit "$1 is not executable.";
+# BINDIR=`dirname $USEBIN`
+[ -z "$BINDIR" ] && BINDIR="`dirname $USEBIN`" || :;
 
 #####
-# Check if there's a given root, and make the directory.
-[ -z "$2" ] \
- && (say "No chroot given; using $HOME/chroot"; CHROOT="$HOME/chroot") \
- || CHROOT="$2"
+# Make chroot and bin directory
 mkdirif "chroot" "$CHROOT"
-say "Copying $1 to chroot $CHROOT"
-
-# Check that the bin will work, and set BINDIR.
-USEBIN=`which $1` || ( >&2 echo "ERROR: $1 is not executable."; exit 1; )
-[ -z "$BINDIR" ] && BINDIR="`dirname $USEBIN`"
-
-# Make the directory, and copy the bin.
 mkdirif "bin" "$CHROOT$BINDIR"
-[ -z "$NOBIN" ] && cpif "$USEBIN" "$CHROOT$BINDIR"
-
-# Check whether there are libraries, and set up those directories.
+# Copy binary
+[ -z "$NOBIN" ] && cpif "$USEBIN" "$CHROOT$BINDIR" || :;
+# Run findlibs
 USELIBS=`$findlibs $USEBIN`
 if [ -n "$USELIBS" ]; then
+  # Sort libs and filter out duplicates
   USELIBS=`for lib in $USELIBS; do echo $lib; done | sort | uniq`
   for lib in $USELIBS; do
+    # Use LIBDIR if user set it; otherwise, use `dirname $lib`
     USEDIR=`dirname $lib`
-    [ -n "$LIBDIR" ] && USEDIR=$LIBDIR
+    [ -n "$LIBDIR" ] && USEDIR=$LIBDIR || :
+    # Make lib dir
     mkdirif "lib" "$CHROOT$USEDIR"
-    cpif $lib "$CHROOT$USEDIR"
+    # Copy library
+    [ -z "$NOLIBS" ] && cpif $lib "$CHROOT$USEDIR" || :;
   done
 fi
 
