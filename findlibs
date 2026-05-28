@@ -1,0 +1,10 @@
+#/bin/bash
+
+# All of these were written for dgl-create-chroot
+# findlibs from original dgl-create-chroot
+for i in "$@"; do
+  if [ -z "`ldd "$i" | grep 'not a dynamic executable'`" ]; then
+    echo $(ldd "$i" | awk '{ print $3 }' | egrep -v ^'\(')
+    echo $(ldd "$i" | grep 'ld-linux' | awk '{print $1}')
+  fi
+done

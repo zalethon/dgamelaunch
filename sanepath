@@ -1,0 +1,5 @@
+#!/bin/bash
+# Squashes slashes, and removes trailing ones
+
+tmp="`echo $1 | tr -s /`"
+echo ${tmp%/}
