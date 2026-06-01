@@ -11,8 +11,9 @@
  c) Change password
  e) Change email address
  w) Watch games in progress
- o) Edit options
- p) Play NetHack 3.4.3
+ o) Edit options (Virus)
+ p) Play NetHack 5.0.0 (curses)
+ P) Play NetHack 5.0.0 (tty)
  q) Quit
 
  =>

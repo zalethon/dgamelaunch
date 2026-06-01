@@ -41,10 +41,10 @@ maxnicklen = 10
 #                 ]
 
 # Path to a prepared chroot jail.
-chroot_path = "(:chroot:)"
+chroot_path = "/opt/nethack/nethack.alt.org/"
 
 # From inside the jail, dgamelaunch's working directory for rcfiles/ttyrec/etc
-dglroot = "(:var:)/"
+dglroot = "/dgldir/"
 
 # Strings to be replaced in every banner
 # you can have either direct string replacements, like
@@ -63,7 +63,7 @@ bannervars = [ "$MOTDTIME" = "2011.10.08",
 # - $VERSION replaced with "dgamelaunch v" + dgl version number.
 # - $USERNAME replaced with logged-in user's name, or with "[Anonymous]"
 # - $INCLUDE(filename) the named file will be inserted here.
-banner = "(:menudir:)/dgl-banner"
+banner = "/dgl-banner"
 
 # The following two options are fairly insecure. They will force us to
 # load the password/group database into memory while still having root
@@ -203,7 +203,7 @@ filemode = "0666"
 
 # First, the menu shown to anonymous user:
 menu["mainmenu_anon"] {
-        bannerfile = "(:menudir:)/dgl_menu_main_anon.txt"
+        bannerfile = "dgl_menu_main_anon.txt"
         cursor = (5,18)
         commands["l"] = ask_login
         commands["r"] = ask_register
@@ -227,7 +227,7 @@ menu["mainmenu_user"] {
 #	 "r" (reverse) or "d" (dim),
 #	 or both color number and attribute characters, separated by colon.
 #	 Empty param resets color and attributes to default.
-        bannerfile = "(:menudir:)/dgl_menu_main_user.txt"
+        bannerfile = "dgl_menu_main_user.txt"
 # after which cursor is moved to this location
 # if cursor-definition is missing, the cursor is put
 # to the end of the last line of the banner.
@@ -235,26 +235,18 @@ menu["mainmenu_user"] {
 # keys we accept. format is
 #  commands["string_of_keys"] = <commandlist>
 # for example, you could use commands["qQ"] = quit
-  commands["s"] = chpasswd
-  commands["e"] = chmail
-  commands["w"] = watch_menu
-  commands["o"] = ifnxcp "(:etc:)/dgl-default-rcfile.nh500" "%ruserdata/%n/%n.nh500rc",
-      exec "/bin/virus" "%ruserdata/%n/%n.nh500rc"
-#  commands["O"] = ifnxcp "(:etc:)/dgl-default-rcfile.nh500" "%ruserdata/%n/%n.nh500rc",
-#      exec "nano" "%ruserdata/%n/%n.nh500rc"
-  commands["p"] = play_game "nh500curses"
-	commands["P"] = play_game "nh500tty"
-# commands["i"] = ifnxcp "/etc/dcss0341/settings/init.txt" "%ruserdata/%n/%n.dcss0341rc",
-#		         exec "/bin/virus" "%ruserdata/%n/%n.dcss0341rc"
-# commands["I"] = ifnxcp "/etc/dcss0341/settings/init.txt" "%ruserdata/%n/%n.dcss0341rc",
-#		         exec "/bin/virus" "%ruserdata/%n/%n.dcss0341rc"
-#	commands["c"] = play_game "dcss0341"
+        commands["c"] = chpasswd
+        commands["e"] = chmail
+        commands["w"] = watch_menu
+        commands["o"] = ifnxcp "/dgl-default-rcfile.nh343" "%ruserdata/%n/%n.nh343rc",
+		        exec "/bin/virus" "%ruserdata/%n/%n.nh343rc"
+        commands["p"] = play_game "NH343"
         commands["q"] = quit
 }
 
 # this menu is shown when user presses '?' in the watching menu
 menu["watchmenu_help"] {
-	bannerfile = "(:menudir:)/dgl_menu_watchmenu_help.txt"
+	bannerfile = "dgl_menu_watchmenu_help.txt"
 	commands["qQ "] = return
 }
 
@@ -263,41 +255,33 @@ menu["watchmenu_help"] {
 
 # Next, we'll define one game's data:
 
-DEFINE {
+#DEFINE {
 #  # From inside the jail, the location of the binary to be launched.
-  game_path = "/bin/nh500"
-
-#  # If the game uses an ancient encoding, you may specify "ibm" or "dec".
-#  # If set to "ask", the game will be run with --print-charset beforehand,
-#  # expected to return one of these values.
-#  encoding = "unicode"
-
+#  game_path = "/bin/nethackstub"
+#
 #  # Full name of the game
-  game_name = "NetHack 5.0.0 (tty)"
-
+#  game_name = "NetHack stub"
+#
 #  # Short name, used in the watching menu
-  short_name = "nh500tty"
-
+#  short_name = "NHstb"
+#
+#  # Game ID - should be unique. Defaults to game_name, if not defined.
+#  # Used to determine which game is which for "play_game" and "play_if_exists" commands
+#  game_id = "NHstb"
+#
 #  # arguments for when we exec the binary
-  game_args = "/bin/nh500", "-u", "%n", "-wtty"
-
+#  game_args = "/bin/nethackstub",
+#	      "foo",
+#	      "user:%n",
+#	      "shed_uid:%u",
+#	      "bar"
+#
 #  # From inside the jail, where dgamelaunch should put mail.
-  spooldir = "/mail/"
-
+#  spooldir = "/var/mail/"
+#
 #  # From inside the jail, the default .nethackrc that is copied for new users.
-  rc_template = "(:etc:)/dgl-default-rcfile.nh500"
-# Format for writing users' own RC files
-  rc_fmt = "%ruserdata/%n/%n.nh500rc"
-
-#  # Make sure the inprogress dir actually exists. default is "inprogress/"
-#  # Each game you define here must have it's own.
-  inprogressdir = "%rinprogress-nh500tty/"
-
-# The place where ttyrecs are stored for this game.
-# If this is not defined, ttyrecs are not saved for this game.
-# Leaving this undefined also means the games cannot be spectated.
-  ttyrecdir = "%ruserdata/%n/ttyrec/"
-
+#  # rc_template = "/dgl-default-rcfile"
+#
 #  # If player idles longer than max_idle_time seconds, the game will
 #  # receive a sighup. Default value is 0, which disables the idling timer.
 #  max_idle_time = 2000
@@ -311,61 +295,24 @@ DEFINE {
 #  # will be sorted to appear before lower weights.
 #  # 
 #  extra_info_file = "%rgamedir/%n.extrainfo"
-
+#
+#  # Make sure the inprogress dir actually exists. default is "inprogress/"
+#  # Each game you define here must have it's own.
+#  inprogressdir = "%rinprogress-nethackstub/"
+#
 #  # We can also define per-game commands, that are executed
 #  # when the game starts:
 #  # commands = chdir "/dgldir", mkdir "foo_%u_%g"
-  # back up savefile
-  commands = cp "(:playground:)/save/%u%n.gz" "(:playground:)/save/%u%n.gz.bak",
-  # set NETHACKOPTIONS to point to the rcfile
-             setenv "NETHACKOPTIONS" "@%ruserdata/%n/%n.nh500rc",
-  # set up nethack mail stuff, assuming it's compiled with it...
-             setenv "MAIL" "/mail/%n",
-             setenv "SIMPLEMAIL" "1",
-  # don't let the mail file grow
-             unlink "/mail/%n"
-
 #
 #  # We can also define per-game commands executed after the game ends,
 #  # but before commands[gameend]
 #  postcommands = chdir "/"
-
-}
-# Defining it again for the curses option.
-DEFINE {
-  game_path = "/bin/nh500"
-  game_name = "NetHack 5.0.0 (curses)"
-  short_name = "nh500curses"
-  game_args = "/bin/nh500", "-u", "%n", "-wcurses"
-  spooldir = "/mail/"
-  rc_template = "(:etc:)/dgl-default-rcfile.nh500"
-  rc_fmt = "%ruserdata/%n/%n.nh500rc"
-  inprogressdir = "%rinprogress-nh500curses/"
-  ttyrecdir = "%ruserdata/%n/ttyrec/"
-  commands = cp "(:playground:)/save/%u%n.gz" "(:playground:)/save/%u%n.gz.bak",
-             setenv "NETHACKOPTIONS" "@%ruserdata/%n/%n.nh500rc",
-             setenv "MAIL" "/mail/%n",
-             setenv "SIMPLEMAIL" "1",
-             unlink "/mail/%n"
-}
-
-# Defining DCSS
-# DEFINE {
-#   game_path = "/bin/crawl"
-#   game_name = "Dungeon Crawl Stone Soup"
-#   short_name = "dcss0341"
-#   game_args = "/bin/crawl", "-name", "%n"
-#   spooldir = "/mail/"
-#   rc_template = "/etc/dcss0341/settings/init.txt"
-#   rc_fmt = "%ruserdata/%n/%n.dcss0341rc"
-#   inprogressdir = "%rinprogress-dcss0341/"
-#   ttyrecdir = "%ruserdata/%n/ttyrec/"
-#   commands = setenv "CRAWL_RC" "@%ruserdata/%n/%n.dcss0341rc",
-#              setenv "MAIL" "/mail/%n",
-#              setenv "SIMPLEMAIL" "1",
-#              unlink "/mail/%n"
-# }
-
+#
+#  # If the game uses an ancient encoding, you may specify "ibm" or "dec".
+#  # If set to "ask", the game will be run with --print-charset beforehand,
+#  # expected to return one of these values.
+#  encoding = "unicode"
+#}
 
 #
 # fiqhack example - showing watch mode options
@@ -426,36 +373,36 @@ DEFINE {
 #
 #
 
-#DEFINE {
-#  game_path = "/nh343/nethack"
-#  game_name = "NetHack 3.4.3"
-#  short_name = "NH343"
+DEFINE {
+  game_path = "/nh343/nethack"
+  game_name = "NetHack 3.4.3"
+  short_name = "NH343"
 
-#  game_args = "/nh343/nethack", "-u", "%n"
+  game_args = "/nh343/nethack", "-u", "%n"
 
-#  spooldir = "/mail/"
-#  rc_template = "(:etc:)/dgl-default-rcfile.nh343"
+  spooldir = "/mail/"
+  rc_template = "/dgl-default-rcfile.nh343"
 
-#  rc_fmt = "%ruserdata/%n/%n.nh343rc"
+  rc_fmt = "%ruserdata/%n/%n.nh343rc"
 
-#  inprogressdir = "%rinprogress-nh343/"
+  inprogressdir = "%rinprogress-nh343/"
 
 # The place where ttyrecs are stored for this game.
 # If this is not defined, ttyrecs are not saved for this game.
 # Leaving this undefined also means the games cannot be spectated.
-#  ttyrecdir = "%ruserdata/%n/ttyrec/"
-#
-#
+  ttyrecdir = "%ruserdata/%n/ttyrec/"
+
+
   # back up savefile
-#  commands = cp "/nh343/var/save/%u%n.gz" "/nh343/var/save/%u%n.gz.bak",
+  commands = cp "/nh343/var/save/%u%n.gz" "/nh343/var/save/%u%n.gz.bak",
   # set NETHACKOPTIONS to point to the rcfile
-#             setenv "NETHACKOPTIONS" "@%ruserdata/%n/%n.nh343rc",
+             setenv "NETHACKOPTIONS" "@%ruserdata/%n/%n.nh343rc",
   # set up nethack mail stuff, assuming it's compiled with it...
-#             setenv "MAIL" "/mail/%n",
-#             setenv "SIMPLEMAIL" "1",
+             setenv "MAIL" "/mail/%n",
+             setenv "SIMPLEMAIL" "1",
   # don't let the mail file grow
-#             unlink "/mail/%n"
-#}
+             unlink "/mail/%n"
+}
 
 #
 # third game
