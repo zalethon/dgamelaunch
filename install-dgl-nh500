@@ -302,7 +302,7 @@ sed -i -e "s,(:playground:),"/$PLAYGROUND",g" $PATCH_ME
 ###############
 # Fetch, patch, build, install NetHack
 if [ -n "$FETCHNH" ]; then
-  wget ${NETHACK500}
+  wget ${NETHACK500} -O ./nethack-500-src.tgz
   expectsum=${NETHACKSHA256}
   actualsum=`shasum -a256 ./nethack-500-src.tgz | awk '{ print $1 }'`
   if [ $actualsum != $expectsum ]; then
