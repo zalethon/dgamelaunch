@@ -383,12 +383,11 @@ mkdir -p "/$CHROOT" || errorexit "Cannot create chroot."
 cd "/$CHROOT"
 
 mkdir -p "$MENUDIR" "$DGLVAR" etc var opt lib mail usr bin dev
-mkdir -p "$DGLVAR/inprogress-nh500"
+mkdir -p "$DGLVAR/inprogress-nh500curses"
+mkdir -p "$DGLVAR/inprogress-nh500tty"
 mkdir -p "$DGLVAR/userdata"
 
-chown "$USRGRP" "$DGLVAR" mail
-chown "$USRGRP" "./$DGLVAR/inprogress-nh500"
-chown "$USRGRP" "./$DGLVAR/userdata"
+chown -R "$USRGRP" "$DGLVAR" mail
 
 # Create randomness device
 cd dev
