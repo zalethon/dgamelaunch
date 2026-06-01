@@ -137,13 +137,10 @@ while [[ $# -gt 0 ]]; do
       set --
       break
       ;;
-    -*|--*)
+    -*|--*|*)
       echo "Unknown option $1"
-      echo "Valid options are: --install-nh500, --nano, --quiet|--silent, --prefix <dir>, --var <dir>, --etc <dir>, --menudir <dir>, --hackdir <dir>, --playground <dir>"
+      echo "Try $0 --help"
       exit 1
-      ;;
-    *)
-      break # (treat this as $1)
       ;;
   esac
 done
