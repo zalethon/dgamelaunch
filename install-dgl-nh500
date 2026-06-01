@@ -214,7 +214,8 @@ COMPRESSBIN="/bin/gzip"
 GREPBIN="/bin/grep"
 
 # DON'T CHANGE THESE
-WORKDIR="`pwd`"
+WORKDIR="dirname `realpath $0`"
+WORKDIR=`$WORKDIR`
 NETHACKBIN="$HACKDIR/nethack"
 
 
