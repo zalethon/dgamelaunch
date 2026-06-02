@@ -156,7 +156,7 @@ ttyplay_keyboard_action(int c)
     case 's':
         switch (stripped)
         {
-	case NO_GRAPHICS: populate_gfx_array ((stripped = DEC_GRAPHICS)); break;
+	case NO_GRAPHICS: populate_gfx_array ((stripped = UNICODE_GRAPHICS)); break;
 	/* case DEC_GRAPHICS: populate_gfx_array ((stripped = IBM_GRAPHICS)); break; */
   case UNICODE_GRAPHICS: populate_gfx_array ((stripped = IBM_GRAPHICS)); break;
 	case IBM_GRAPHICS: populate_gfx_array ((stripped = NO_GRAPHICS)); break;
