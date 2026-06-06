@@ -467,18 +467,18 @@ bannerstrmangle(char *buf, char *bufnew, int buflen, char *fromstr, char *tostr)
     if (strstr(b, fromstr)) {
 	int i = 0;
 	while ((loc = strstr (b, fromstr)) != NULL) {
-	    for (; i < buflen; i++) {
-		if (loc != b)
-		    bufnew[i] = *(b++);
-		else {
+    for (; i < buflen; i++) {
+      if (loc != b)
+          bufnew[i] = *(b++);
+		  else {
 		    strlcat (bufnew, tostr, buflen);
 		    b += strlen(fromstr);
 		    i += strlen(tostr);
 		    break;
-                }
+      }
 
-		if (strlen (b) == 0)
-		    break;
+		    if (strlen (b) == 0)
+		      break;
 	    }
 	}
 
@@ -575,66 +575,65 @@ banner_addline(struct dg_banner *ban, char *line)
 }
 
 void
-loadbanner (char *fname, struct dg_banner *ban)
-{
+loadbanner (char *fname, struct dg_banner *ban) {
   FILE *bannerfile;
   char buf[DGL_BANNER_LINELEN+1];
-  if (ban->len > 23) return;
+  if (ban->len > 23)
+    return;
 
   memset (buf, 0, DGL_BANNER_LINELEN);
 
   bannerfile = fopen (fname, "r");
 
-  if (!bannerfile)
-    {
-	if (ban->len == 0)
-	    banner_addline(ban, "### dgamelaunch " PACKAGE_VERSION " - network console game launcher");
-	snprintf(buf, DGL_BANNER_LINELEN, "### NOTE: administrator has not installed a %s file", fname);
-	banner_addline(ban, buf);
-	return;
+  if (!bannerfile) {
+    if (ban->len == 0)
+      banner_addline(ban, "### dgamelaunch " PACKAGE_VERSION " - network console game launcher");
+    snprintf(buf, DGL_BANNER_LINELEN, "### NOTE: administrator has not installed a %s file", fname);
+    banner_addline(ban, buf);
+    return;
+  }
+
+  while (fgets (buf, DGL_BANNER_LINELEN, bannerfile) != NULL) {
+    char bufnew[DGL_BANNER_LINELEN+1];
+    int slen;
+
+    memset (bufnew, 0, DGL_BANNER_LINELEN);
+
+    slen = strlen(buf);
+    if ((slen > 0) && (buf[slen-1] == '\n'))
+      buf[slen-1] = '\0';
+
+    strncpy(bufnew, buf, DGL_BANNER_LINELEN);
+    if (strstr(bufnew, "$INCLUDE(")) {
+      char *fn = bufnew + 9;
+      char *fn_end = strchr(fn, ')');
+      if (fn_end) {
+        *fn_end = '\0';
+        if (strcmp(fname, fn)) {
+          loadbanner(fn, ban);
+        }
+      }
+    } else {
+      char tmpbufnew[DGL_BANNER_LINELEN+1];
+      struct dg_banner_var *bv = globalconfig.banner_var_list;
+      while (bv) {
+        strncpy(bufnew, bannerstrmangle(bufnew, tmpbufnew, DGL_BANNER_LINELEN, bv->name, banner_var_resolve(bv)), DGL_BANNER_LINELEN);
+        bv = bv->next;
+      }
+      strncpy(bufnew, bannerstrmangle(bufnew, tmpbufnew, DGL_BANNER_LINELEN, "$VERSION", PACKAGE_STRING), DGL_BANNER_LINELEN);
+      if (me && loggedin) {
+        strncpy(bufnew, bannerstrmangle(bufnew, tmpbufnew, DGL_BANNER_LINELEN, "$USERNAME", me->username), DGL_BANNER_LINELEN);
+      } else {
+        strncpy(bufnew, bannerstrmangle(bufnew, tmpbufnew, DGL_BANNER_LINELEN, "$USERNAME", "[Anonymous]"), DGL_BANNER_LINELEN);
+      }
+      strncpy(bufnew, bannerstr_substprefs(bufnew, tmpbufnew, DGL_BANNER_LINELEN), DGL_BANNER_LINELEN);
+      banner_addline(ban, bufnew);
     }
 
-  while (fgets (buf, DGL_BANNER_LINELEN, bannerfile) != NULL)
-    {
-      char bufnew[DGL_BANNER_LINELEN+1];
-      int slen;
+    memset (buf, 0, DGL_BANNER_LINELEN);
 
-      memset (bufnew, 0, DGL_BANNER_LINELEN);
-
-      slen = strlen(buf);
-      if ((slen > 0) && (buf[slen-1] == '\n')) buf[slen-1] = '\0';
-
-      strncpy(bufnew, buf, DGL_BANNER_LINELEN);
-      if (strstr(bufnew, "$INCLUDE(")) {
-	  char *fn = bufnew + 9;
-	  char *fn_end = strchr(fn, ')');
-	  if (fn_end) {
-	      *fn_end = '\0';
-	      if (strcmp(fname, fn)) {
-		  loadbanner(fn, ban);
-	      }
-	  }
-      } else {
-	  char tmpbufnew[DGL_BANNER_LINELEN+1];
-	  struct dg_banner_var *bv = globalconfig.banner_var_list;
-	  while (bv) {
-	      strncpy(bufnew, bannerstrmangle(bufnew, tmpbufnew, DGL_BANNER_LINELEN, bv->name, banner_var_resolve(bv)), DGL_BANNER_LINELEN);
-	      bv = bv->next;
-	  }
-	  strncpy(bufnew, bannerstrmangle(bufnew, tmpbufnew, DGL_BANNER_LINELEN, "$VERSION", PACKAGE_STRING), DGL_BANNER_LINELEN);
-	  if (me && loggedin) {
-	      strncpy(bufnew, bannerstrmangle(bufnew, tmpbufnew, DGL_BANNER_LINELEN, "$USERNAME", me->username), DGL_BANNER_LINELEN);
-	  } else {
-	      strncpy(bufnew, bannerstrmangle(bufnew, tmpbufnew, DGL_BANNER_LINELEN, "$USERNAME", "[Anonymous]"), DGL_BANNER_LINELEN);
-	  }
-          strncpy(bufnew, bannerstr_substprefs(bufnew, tmpbufnew, DGL_BANNER_LINELEN), DGL_BANNER_LINELEN);
-	  banner_addline(ban, bufnew);
-      }
-
-      memset (buf, 0, DGL_BANNER_LINELEN);
-
-      if (ban->len >= 24)
-	  break;
+    if (ban->len >= 24)
+      break;
   }
 
   fclose (bannerfile);
