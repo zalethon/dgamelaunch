@@ -2,8 +2,10 @@
 
 # install-dgl-nh500
 #
-# Script for setting up Debian DGL/NetHack 5.0.0 environment
-# (hopefully to also set up DCSS 0.34.1 too)
+# Formerly a standalone script for setting up Debian DGL/NetHack 5.0.0
+# environment; now a wrapper to provide command-line options for
+# dgl-create-chroot and install-dgl-nh500, as well as giving some
+# reasonable defaults.
 #
 # You should run this as root.
 #
@@ -18,15 +20,9 @@
 #                                     everything DGL or NetHack need to run
 #                                     is in this directory.
 
-# --var <dir> [/var]                  Location for mutable data. Organized a
-#                                     little strangely in that each game known
-#                                     to dgamelaunch has its own subdirectory,
-#                                     and dgamelaunch's data is just in here.
+# --var <dir> [/var]                  Location for mutable data.
 
 # --etc <dir> [/etc]                  Location for immutable and config data.
-#                                     Ditto, each game has its own subdirectry.
-#                                     note that NetHack doesn't have one; all
-#                                     of its immutable data lives in hackdir.
 
 # --menudir <dir> [<etc>/menu]         Location for menu files. Really they can
 #                                     be anywhere, but this instructs the
@@ -38,15 +34,6 @@
 #                                     'var playground.'
 
 # --dbfile <sqlite3 db> [<var>/dgamelaunch.db]   The location for the database.
-
-# --nano [FLAG]                       If you set the nano flag, nano will be
-#                                     installed in the chroot, for use as an
-#                                     editor. The default configuration
-#                                     assumes it is "built" with nano.
-
-# --without-nh500 [FLAG]              If you set without-nh500, the script will
-#                                     not install NetHack. Know what you're
-#                                     doing!
 
 # -q -s --quiet --silent [FLAG]       Causes autogen and make to run quietly.
 
@@ -70,7 +57,7 @@
 while [[ $# -gt 0 ]]; do
   case $1 in
     -h|--help|--usage|-?|--?)
-      printf "`sed -n '3,69p;69q' $0 | tr -d "#"`\n\n"
+      printf "`sed -n '3,55p;55q' $0 | tr -d "#"`\n\n"
       exit 0
       ;;
     -q|-s|--quiet|--silent)
@@ -146,12 +133,6 @@ while [[ $# -gt 0 ]]; do
 done
 
 ## SETTINGS
-
-# Source repositories and checksums.
-# If you change these, know what you're doing!
-NETHACK500=https://www.nethack.org/download/5.0.0/nethack-500-src.tgz
-NETHACKSHA256=2959b7886aac76185b90aea0c9f80d14343f604de0ae96b3dd2a760f7ab3bde9
-DGL=https://github.com/crawl/dgamelaunch/archive/455308b96fa7522c8c9873653401b4e0cf8f71e4.zip
 
 # Configuration options for DGL.
 # User and group for NetHack and DGL.
@@ -277,241 +258,3 @@ COMPRESSBIN=`standdir $COMPRESSBIN`
 GREPBIN=`standdir $GREPBIN`
 NETHACKBIN=`standdir $NETHACKBIN`
 WORKDIR=`standdir $WORKDIR`
-
-
-DEBUG=0
-if [ -z "$DEBUG" -o "$DEBUG" = "0" ]; then # DEBUG
-
-# We'll fetch, patch, build, and install NetHack,
-# then fetch, patch, and build dgamelaunch, then go through the
-# dgl-create-chroot script.
-
-set -e
-
-if [ -n "$QUIETMAKE" ]; then
-  MAKEFLAGS="-s"
-  AUTOGENFLAGS="-q"
-fi
-
-PATCH_ME="dgl-nh500.patch examples/dgamelaunch.conf"
-for i in $PATCH_ME; do
-  cp $i $i.bak
-done
-sed -i -e "s,(:chroot:),"/$CHROOT",g" $PATCH_ME
-sed -i -e "s,(:var:),"/$DGLVAR",g" $PATCH_ME
-sed -i -e "s,(:etc:),"/$DGLETC",g" $PATCH_ME
-sed -i -e "s,(:menudir:),"/$MENUDIR",g" $PATCH_ME
-sed -i -e "s,(:hackdir:),"/$HACKDIR",g" $PATCH_ME
-sed -i -e "s,(:playground:),"/$PLAYGROUND",g" $PATCH_ME
-
-###############
-# Fetch, patch, build, install NetHack
-if [ -n "$FETCHNH" ]; then
-  wget ${NETHACK500} -O ./nethack-500-src.tgz
-  expectsum=${NETHACKSHA256}
-  actualsum=`shasum -a256 ./nethack-500-src.tgz | awk '{ print $1 }'`
-  if [ $actualsum != $expectsum ]; then
-      rm ./nethack-500-src.tgz
-      rm dgamelaunch.zip
-      errorexit 2 "NetHack SHA256 sum is WRONG!!! Edit the script with the right source, or the right checksum."
-  fi
-  tar -xf nethack-500-src.tgz
-fi
-if [ -n "$PATCHNH" -o -n "$BUILDNH" -o -n "$INSTALLNH" ]; then
-  cd NetHack-5.0.0
-fi
-if [ -n "$PATCHNH" ]; then
-  patch -p1 --verbose < "/$WORKDIR/dgl-nh500.patch"
-  sys/unix/setup.sh sys/unix/hints/linux.500
-fi
-if [ -n "$BUILDNH" ]; then
-  make $MAKEFLAGS fetch-lua
-  echo "NOTE: btw, don't worry about these git messages. git doesn't matter."
-  make $MAKEFLAGS all
-fi
-if [ -n "$INSTALLNH" ]; then
-  make $MAKEFLAGS install
-fi
-cd "/$WORKDIR"
-
-###################################
-# Patch, build, install dgamelaunch -- pretty much never used, since this is packaged with dgamelaunch. Unmaintained.
-if [ -n "$FETCHDGL" ]; then
-  wget -O dgamelaunch.zip ${DGL}
-  unzip -q dgamelaunch.zip
-  dglmess="dgamelaunch-`echo "${DGL}" | awk -F/ '{ print $7 }' | awk -F. '{ print $1 }'`"
-  mv "$dglmess" dgamelaunch
-  cd dgamelaunch
-  patch -p1 --verbose < "/$WORKDIR/dgl.patch"
-fi
-
-autoupdate
-if [ -n "$SQLITE_DBFILE" ]; then
-  AUTOGENFLAGS="$AUTOGENFLAGS --enable-sqlite --with-sqlite-db=/$SQLITE_DBFILE"
-fi
-AUTOGENFLAGS="$AUTOGENFLAGS --enable-debugfile --enable-shmem --with-config-file=/$CHROOT/$DGLETC/dgamelaunch.conf --prefix=/$CHROOT"
-MAKEFLAGS="$MAKEFLAGS CFLAGS+=-Wno-implicit-function-declaration"
-echo "Autogen flags: $AUTOGENFLAGS"
-./autogen.sh $AUTOGENFLAGS
-make $MAKEFLAGS
-
-# note to self: do not cd right here
-
-##### dgl-create-chroot ###########################################
-# Run dgl-create-chroot. Rather than patch the script, just building
-# it into this one...
-#
-# Original dgl-create-chroot by joshk@triplehelix.org
-#       modifications by jilles@stack.nl
-# Subsequent modifications by paxed@alt.org
-# Obtained from crawl team at https://github.com/crawl/dgamelaunch
-# 	(along with the rest of dgamelaunch)
-# This version by Skyebe, distributed at random
-
-umask 022
-
-if [ -e "/$CHROOT" ]; then
-   errorexit "Chroot /$CHROOT already exists."
-fi
-
-CURDIR="`pwd`"
-CURDIR="`standdir $CURDIR`"
-
-# Create chroot filesystem hierarchy
-mkdir -p "/$CHROOT" || errorexit "Cannot create chroot."
-
-cd "/$CHROOT"
-
-mkdir -p "$MENUDIR" "$DGLVAR" etc var opt lib mail usr bin dev
-mkdir -p "$DGLVAR/inprogress-nh500curses"
-mkdir -p "$DGLVAR/inprogress-nh500tty"
-mkdir -p "$DGLVAR/userdata"
-
-chown -R "$USRGRP" "$DGLVAR" mail
-
-# Create randomness device
-cd dev
-mknod urandom c 1 9
-cd "/$CHROOT"
-echo "We just used mknod! :confetti:"
-
-# Copy DGL files to /etc
-cp "/$CURDIR/examples/dgamelaunch.conf" "$DGLETC"
-[ -f /etc/localtime ] && cp /etc/localtime .
-cp "/$CURDIR/examples/dgl_menu_main_anon.txt" "$MENUDIR"
-cp "/$CURDIR/examples/dgl_menu_main_user.txt" "$MENUDIR"
-cp "/$CURDIR/examples/dgl_menu_watchmenu_help.txt" "$MENUDIR"
-cp "/$CURDIR/examples/dgl-banner" "$MENUDIR"
-cp "/$CURDIR/dgl-default-rcfile" "$DGLETC/dgl-default-rcfile.nh500"
-chmod go+r "$MENUDIR/dgl_menu_main_anon.txt" "$MENUDIR/dgl_menu_main_user.txt" "$MENUDIR/dgl-banner" "$DGLETC/dgl-default-rcfile.nh500"
-
-# Copy extraneous binaries to /bin
-cpbin /$COMPRESSBIN
-cpbin /$GREPBIN
-if [ -n "$DGLNANO" ]; then
-  cpbin /bin/nano
-fi
-cp "/$CURDIR/virus" bin
-
-# Copy NetHack and DGL
-# Remember: we are currently in $CHROOT
-if [ -n "$INSTALLNH" ]; then
-  NHBINFILE="`basename /$NETHACKBIN`.`date +%Y%m%d`"
-  LIBS="$LIBS `findlibs /$NETHACKBIN`"
-  LHACKDIR="`echo "$HACKDIR" | awk -F/ 'BEGIN {OFS=FS} {NF-=1; print}'`"
-  LPLAYGROUND="`echo "$PLAYGROUND" | awk -F/ 'BEGIN {OFS=FS} {NF-=1; print}'`"
-  mkdir -p "$LHACKDIR"
-  mkdir -p "$LPLAYGROUND"
-  cp -r "/$HACKDIR" "$LHACKDIR/"
-  cp "/$NETHACKBIN" "$HACKDIR/$NHBINFILE"
-  ln -s "/$HACKDIR/$NHBINFILE" bin/nh500
-  cp -r "/$PLAYGROUND" "$LPLAYGROUND/"
-  chown -R "$USRGRP" "$HACKDIR"
-  chown -R "$USRGRP" "$PLAYGROUND"
-fi
-
-DGLFILE="dgamelaunch.`date +%Y%m%d`"
-LIBS="$LIBS `findlibs /$CURDIR/dgamelaunch`"
-cp "/$CURDIR/dgamelaunch" "bin/$DGLFILE"
-ln -s "$DGLFILE" bin/dgamelaunch
-# THIS IS IMPORTANT to make watch_games/shmem function
-ln -s /bin/dgamelaunch .
-
-# Creating sqlite db
-if [ -n "$SQLITE_DBFILE" ]; then
-  sqlite3 "/$CHROOT/$SQLITE_DBFILE" "create table dglusers (id integer primary key, username text, email text, env text, password text, flags integer);"
-  chown "$USRGRP" "/$CHROOT/$SQLITE_DBFILE"
-fi
-
-# Copying libraries
-LIBS=`for lib in $LIBS; do echo $lib; done | sort | uniq`
-for lib in $LIBS; do
-  mkdir -p "/$CHROOT`dirname $lib`"
-  cp $lib "/$CHROOT$lib"
-done
-
-# Curses junk
-if [ -z "$TERMDATA" ]; then
-    SEARCHTERMDATA="/etc/terminfo /usr/share/lib/terminfo /usr/share/terminfo /lib/terminfo"
-    for dir in $SEARCHTERMDATA; do
-	if [ -e "$dir/x/xterm" ]; then
-	    TERMDATA="$TERMDATA $dir"
-	fi
-    done
-    if [ -z "$TERMDATA" ]; then
-	errorexit 1 "Couldn't find terminfo definitions. Please specify in 'TERMDATA' variable."
-    fi
-fi
-if [ -n "$TERMDATA" ]; then
-    echo "Copying termdata files from $TERMDATA"
-    for termdat in $TERMDATA; do
-	mkdir -p "/$CHROOT`dirname $termdat`"
-	if [ -d $termdat/. ]; then
-		cp -LR $termdat/. /$CHROOT$termdat
-	else
-		cp $termdat /$CHROOT`dirname $termdat`
-	fi
-    done
-fi
-
-
-fi # DEBUG
-
-# cleanup
-cd "/$WORKDIR"
-RM_ME="NetHack-5.0.0 dgamelaunch.zip nethack-500-src.tgz dgl-nh500.patch \
-  examples/dgamelaunch.conf configure configure.ac .depend Makefile config.h \
-  config.h.in config.log config.status *.o ee virus lex.yy.c y.tab.c y.tab.h"
-if [ -n $INSTALLDGL ]; then
-  RM_ME="$RM_ME dgamelaunch"
-fi
-echo "Removing $RM_ME"
-rm -rf $RM_ME
-mv ./dgl-nh500.patch.bak ./dgl-nh500.patch
-mv ./examples/dgamelaunch.conf.bak ./examples/dgamelaunch.conf
-mv ./configure.ac~ ./configure.ac
-
-HACKDIR=`realpath "/$HACKDIR"`
-PLAYGROUND=`realpath "/$PLAYGROUND"`
-if [ "$HACKDIR" = "/" ]; then
-  cd "$HACKDIR"
-  rm license nethack* nhdat recover symbols sysconf
-else
-  cd `dirname "$HACKDIR"`
-  rm -rf `basename "$HACKDIR"`
-fi
-
-if [ "$PLAYGROUND" = "/" ]; then
-  cd "$PLAYGROUND"
-  rm -rf livelog logfile perm record save/ xlogfile
-else
-  cd `dirname "$PLAYGROUND"`
-  rm -rf `basename "$PLAYGROUND"`
-fi
-
-rm /nethack
-
-echo "Finished."
-
-
-
