@@ -2,7 +2,7 @@ dnl Use autoconf 2.71
 dnl (Things tend to break across versions, they're neither upwards nor
 dnl downward compatible. Blame GNU.)
 
-AC_INIT([dgamelaunch],m4_esyscmd_s([`git describe --abbrev=7 --dirty --always | tr -d '\n'`]))
+AC_INIT([dgamelaunch],m4_esyscmd_s([git describe --abbrev=7 --dirty --always | tr -d '\n']))
 AC_PREREQ([2.71])
 AC_CONFIG_SRCDIR([dgamelaunch.c])
 AC_CONFIG_HEADERS([config.h])
