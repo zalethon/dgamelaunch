@@ -1,9 +1,11 @@
 1.6.1-roc (2026)
-    * Forked noisytoot repository and merged changes in paxed's repo since
+        * Forked noisytoot repository and merged changes in paxed's repo since
 	  last merge.
 	* Changed loadbanner() [dgamelaunch.c] -- $INCLUDE() can now be anywhere
 	  in a line.
-	
+        * Banner files can be longer than 24 lines, if the window size is long
+          enough.
+
 1.6.0-hdf (2018-2020)
 	* Enhanced watchmode - use game's built-in whatch function instead of
 	  ttyplay, when available (FIQ/Tangles)

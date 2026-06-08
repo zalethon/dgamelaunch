@@ -633,7 +633,7 @@ loadbanner (char *fname, struct dg_banner *ban) {
 
     memset (buf, 0, DGL_BANNER_LINELEN);
 
-    if (ban->len >= 24)
+    if (ban->len >= win.ws_row - 3)
       break;
   }
 
