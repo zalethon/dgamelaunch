@@ -15,6 +15,11 @@
         * Merged "crawl-specific" character handling from crawl repo (maybe it
           will be useful for older versions of DCSS?)
 
+1.6.0-hdf (2024 - noisytoot fork, recorded here 2026 by skyebee)
+	* Fixed various buildtime warnings in ee, and minor errors in autoconf
+	* Improved error reporting in dgldebug.log
+	* Added optional support for linux namespaces over root powers
+
 1.6.0-hdf (2018-2020)
 	* Enhanced watchmode - use game's built-in whatch function instead of
 	  ttyplay, when available (FIQ/Tangles)
