@@ -723,7 +723,7 @@ void drawbanner(struct dg_banner *ban)
               *next_attr_char = '\0';
               next_attr_char++;
             }
-            attr |= remap_attr_string(edit_cursor)
+            attr |= remap_attr_string(edit_cursor);
             edit_cursor = next_attr_char;
           } while (delimited);
 
@@ -739,12 +739,14 @@ void drawbanner(struct dg_banner *ban)
         else
           mvaddstr(1 + i, x, output_cursor);
       }
-      elif ((edit_cursor = strstr(output_cursor, "$ATT2(")))
-      {
-        if ((special_end = strstr(edit_cursor, ")")))
-        {
-        }
-      }
+      else
+        mvaddstr(1 + i, x, output_cursor);
+//      elif ((edit_cursor = strstr(output_cursor, "$ATT2(")))
+//      {
+//        if ((special_end = strstr(edit_cursor, ")")))
+//        {
+//        }
+//      }
     } while (line_incomplete);
     free(banner_line);
   }
