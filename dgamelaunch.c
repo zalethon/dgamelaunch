@@ -643,7 +643,7 @@ loadbanner (char *fname, struct dg_banner *ban) {
 void drawbanner(struct dg_banner *ban)
 {
   unsigned int i;
-  char *tmpch, *tmpch2, *splch;
+  char *edit_cursor, *special_end, *next_delimiter;
   int attr = 0, oattr = 0;
 
   if (!ban)
@@ -651,39 +651,39 @@ void drawbanner(struct dg_banner *ban)
 
   for (i = 0; i < ban->len; i++)
   {
-    char *tmpbuf = strdup(ban->lines[i]);
-    char *tmpbuf2 = tmpbuf;
-    int ok = 0;
+    char *banner_line = strdup(ban->lines[i]);
+    char *output_cursor = banner_line;
+    int line_incomplete = 0;
     int x = 1;
     do
-    {
-      ok = 0;
-      if ((tmpch = strstr(tmpbuf2, "$ATTR(")))
+    { // while (line_incomplete)
+      line_incomplete = 0;
+      if ((edit_cursor = strstr(output_cursor, "$ATTR(")))
       {
-        if ((tmpch2 = strstr(tmpch, ")")))
+        if ((special_end = strstr(edit_cursor, ")")))
         {
-          int spl = 0;
-          char *nxttmpch;
-          ok = 1;
+          int delimited = 0;
+          char *next_attr_char;
+          line_incomplete = 1;
           oattr = attr;
           attr = A_NORMAL;
-          *tmpch = *tmpch2 = '\0';
-          tmpch += 6;
-          nxttmpch = tmpch;
-          do
+          *edit_cursor = *special_end = '\0';
+          edit_cursor += 6;
+          next_attr_char = edit_cursor;
+          do // while(delimited)
           {
-            spl = 0;
-            splch = strchr(tmpch, ';');
-            if (splch && *splch)
+            delimited = 0;
+            next_delimiter = strchr(edit_cursor, ';');
+            if (next_delimiter && *next_delimiter)
             {
-              spl = 1;
-              nxttmpch = splch;
-              *nxttmpch = '\0';
-              nxttmpch++;
+              delimited = 1;
+              next_attr_char = next_delimiter;
+              *next_attr_char = '\0';
+              next_attr_char++;
             }
-            if (tmpch && *tmpch)
+            if (edit_cursor && *edit_cursor)
             {
-              switch (*tmpch)
+              switch (*edit_cursor)
               {
               default:
                 break;
@@ -698,7 +698,7 @@ void drawbanner(struct dg_banner *ban)
               case '8':
               case '9':
               {
-                int num = atoi(tmpch);
+                int num = atoi(edit_cursor);
                 if (num >= 0 && num <= 15)
                   attr |= color_remap[num];
               }
@@ -722,25 +722,25 @@ void drawbanner(struct dg_banner *ban)
             }
             else
               attr = A_NORMAL;
-            tmpch = nxttmpch;
-          } while (spl);
+            edit_cursor = next_attr_char;
+          } while (delimited);
 
-          mvaddstr(1 + i, x, tmpbuf2);
+          mvaddstr(1 + i, x, output_cursor);
           if (oattr)
             attroff(oattr);
           if (attr)
             attron(attr);
-          x += strlen(tmpbuf2);
-          tmpch2++;
-          tmpbuf2 = tmpch2;
+          x += strlen(output_cursor);
+          special_end++;
+          output_cursor = special_end;
         }
         else
-          mvaddstr(1 + i, x, tmpbuf2);
+          mvaddstr(1 + i, x, output_cursor);
       }
       else
-        mvaddstr(1 + i, x, tmpbuf2);
-    } while (ok);
-    free(tmpbuf);
+        mvaddstr(1 + i, x, output_cursor);
+    } while (line_incomplete);
+    free(banner_line);
   }
 }
 
