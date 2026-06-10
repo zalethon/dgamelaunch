@@ -352,6 +352,7 @@ extern void domailuser(char *username);
 extern void drawmenu(void);
 extern void freefile(void);
 extern void initcurses(void);
+extern int color_pair_idx(int fg, int bg);
 extern void loginprompt(int from_ttyplay);
 extern void newuser(void);
 extern void autologin(char *user, char *pass);

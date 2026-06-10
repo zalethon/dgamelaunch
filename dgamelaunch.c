@@ -1946,6 +1946,13 @@ initcurses ()
   refresh();
 }
 
+int color_pair_idx(int fg, int bg)
+{
+  int hbits = (7 & bg) << 4;
+  int lbits = (7 & fg);
+  return (hbits | lbits) + 1;
+}
+
 /* ************************************************************* */
 
 void
