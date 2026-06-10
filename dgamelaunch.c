@@ -640,6 +640,48 @@ loadbanner (char *fname, struct dg_banner *ban) {
   fclose (bannerfile);
 }
 
+int remap_attr_string(char *s)
+{
+  int attr = 0;
+  if (s && *s)
+  {
+    switch (*s)
+    {
+    default:
+      break;
+    case '0': case '1': case '2': case '3': case '4':
+    case '5': case '6': case '7': case '8': case '9':
+    {
+      int num = atoi(s);
+      if (num >= 0 && num <= 15)
+        attr |= color_remap[num];
+    }
+    break;
+    case 'b':
+      attr |= A_BOLD;
+      break;
+    case 's':
+      attr |= A_STANDOUT;
+      break;
+    case 'u':
+      attr |= A_UNDERLINE;
+      break;
+    case 'r':
+      attr |= A_REVERSE;
+      break;
+    case 'd':
+      attr |= A_DIM;
+      break;
+    case 'f':
+      attr |= A_BLINK;
+      break;
+    }
+  }
+  else
+    attr = A_NORMAL;
+  return attr;
+}
+
 void drawbanner(struct dg_banner *ban)
 {
   unsigned int i;
@@ -681,50 +723,7 @@ void drawbanner(struct dg_banner *ban)
               *next_attr_char = '\0';
               next_attr_char++;
             }
-            if (edit_cursor && *edit_cursor)
-            {
-              switch (*edit_cursor)
-              {
-              default:
-                break;
-              case '0':
-              case '1':
-              case '2':
-              case '3':
-              case '4':
-              case '5':
-              case '6':
-              case '7':
-              case '8':
-              case '9':
-              {
-                int num = atoi(edit_cursor);
-                if (num >= 0 && num <= 15)
-                  attr |= color_remap[num];
-              }
-              break;
-              case 'b':
-                attr |= A_BOLD;
-                break;
-              case 's':
-                attr |= A_STANDOUT;
-                break;
-              case 'u':
-                attr |= A_UNDERLINE;
-                break;
-              case 'r':
-                attr |= A_REVERSE;
-                break;
-              case 'd':
-                attr |= A_DIM;
-                break;
-              case 'f':
-                attr |= A_BLINK;
-                break;
-              }
-            }
-            else
-              attr = A_NORMAL;
+            attr |= remap_attr_string(edit_cursor)
             edit_cursor = next_attr_char;
           } while (delimited);
 
@@ -740,8 +739,12 @@ void drawbanner(struct dg_banner *ban)
         else
           mvaddstr(1 + i, x, output_cursor);
       }
-      else
-        mvaddstr(1 + i, x, output_cursor);
+      elif ((edit_cursor = strstr(output_cursor, "$ATT2(")))
+      {
+        if ((special_end = strstr(edit_cursor, ")")))
+        {
+        }
+      }
     } while (line_incomplete);
     free(banner_line);
   }
