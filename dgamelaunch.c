@@ -642,51 +642,51 @@ loadbanner (char *fname, struct dg_banner *ban) {
 
 void drawbanner(struct dg_banner *ban)
 {
-  unsigned int i;
-  char *edit_cursor, *special_end, *next_delimiter;
-  int attr = 0, oattr = 0;
+  unsigned int i;                                   // Declare index (into ban->lines)
+  char *edit_cursor, *special_end, *next_delimiter; // Declare pointers for manipulating a line
+  int attr = 0, oattr = 0;                          // Declare/initialize the actual attribute and old_attribute vars (read ncurses docs for more)
 
-  if (!ban)
-    return;
+  if (!ban)                                          // Argument sanity check
+    return;                                          // return if there's no banner.
 
-  for (i = 0; i < ban->len; i++)
+  for (i = 0; i < ban->len; i++)                     // For each line in the banner...
   {
-    char *banner_line = strdup(ban->lines[i]);
-    char *output_cursor = banner_line;
-    int line_incomplete = 0;
-    int x = 1;
-    do
+    char *banner_line = strdup(ban->lines[i]);         // Declare and point banner_line at a duplicate of the line
+    char *output_cursor = banner_line;                 // Declare and point output_cursor at the same address
+    int line_incomplete = 0;                           // Declare/initialize while bool
+    int x = 1;                                         // Declare/initialize ncurses-window-x-position
+    do                                                 // while line_incomplete (we jump in once even if !line_incomplete)...
     { // while (line_incomplete)
-      line_incomplete = 0;
-      if ((edit_cursor = strstr(output_cursor, "$ATTR(")))
-      {
-        if ((special_end = strstr(edit_cursor, ")")))
-        {
-          int delimited = 0;
-          char *next_attr_char;
-          line_incomplete = 1;
-          oattr = attr;
-          attr = A_NORMAL;
-          *edit_cursor = *special_end = '\0';
-          edit_cursor += 6;
-          next_attr_char = edit_cursor;
-          do // while(delimited)
-          {
-            delimited = 0;
-            next_delimiter = strchr(edit_cursor, ';');
-            if (next_delimiter && *next_delimiter)
+      line_incomplete = 0;                                  // reset line_incomplete
+      if ((edit_cursor = strstr(output_cursor, "$ATTR(")))  // }  If there's "$ATTR(" somewhere in the line,
+      {                                                     //  > point edit_cursor at that, and...
+        if ((special_end = strstr(edit_cursor, ")")))       // }  If there's ")" somehwere after edit_cursor,
+        {                                                   //    point special_end at that, and...
+          int delimited = 0;                   // Declare/initialize while bool
+          char *next_attr_char;                // Declare attr-char pointer
+          line_incomplete = 1;                 // Set line_incomplete, because we'll have to keep parsing it after dealing with $ATTR()
+          oattr = attr;                        // Set old_attr to the current value of attr (if we've been here before)
+          attr = A_NORMAL;                     // Set output_attr to A_NORMAL
+          *edit_cursor = *special_end = '\0';  // At the edit_cursor ("$"" in "$ATTR(*)") and at special_end (")") put null byte
+          edit_cursor += 6;                    // Move the edit_cursor to the first attr_char (whate'vers between "$ATTR(" and ")")
+          next_attr_char = edit_cursor;        // Point next_attr_char at edit_cursor
+          do // while(delimited)               // while delimited (again we jump in once anyway)
+          {                                    
+            delimited = 0;                              // Reset delimited
+            next_delimiter = strchr(edit_cursor, ';');  // Find the next delimiter (notice if you've tried to use this feature, it's a semicolon, not a colon)
+            if (next_delimiter && *next_delimiter)      // If there is a next delimiter...
             {
-              delimited = 1;
-              next_attr_char = next_delimiter;
-              *next_attr_char = '\0';
-              next_attr_char++;
+              delimited = 1;                              // set delimited, we'll have to parse multiple attr chars
+              next_attr_char = next_delimiter;            // Point next_attr_char at the delimiter
+              *next_attr_char = '\0';                     // Set the character to null
+              next_attr_char++;                           // Move next_attr_char one character to the right
             }
-            if (edit_cursor && *edit_cursor)
+            if (edit_cursor && *edit_cursor)            // If the edit_cursor is pointing at something valid...
             {
               switch (*edit_cursor)
               {
               default:
-                break;
+                break;                        // Don't do anything, if the character isn't matched
               case '0':
               case '1':
               case '2':
@@ -696,14 +696,14 @@ void drawbanner(struct dg_banner *ban)
               case '6':
               case '7':
               case '8':
-              case '9':
+              case '9':                       // If the edit_cursor is pointing at the ascii characters 0-9
               {
-                int num = atoi(edit_cursor);
-                if (num >= 0 && num <= 15)
-                  attr |= color_remap[num];
+                int num = atoi(edit_cursor);    // declare and assign num to the whole number represented by the string up to the next null byte (former delimiter)
+                if (num >= 0 && num <= 15)      // If the number is within the range 0-15...
+                  attr |= color_remap[num];       // OR output_attr with the appropriate color
               }
-              break;
-              case 'b':
+              break; // (stop checking... for al of these)
+              case 'b':                       // For each of b, s, u, r, and d, OR output_attr with the appropriate attribute
                 attr |= A_BOLD;
                 break;
               case 's':
@@ -721,26 +721,26 @@ void drawbanner(struct dg_banner *ban)
               }
             }
             else
-              attr = A_NORMAL;
-            edit_cursor = next_attr_char;
-          } while (delimited);
+              attr = A_NORMAL;                          // Otherwise, just set output_attr to A_NORMAL.
+            edit_cursor = next_attr_char;               // Move edit_cursor to next_attr_char's position (after the former delimiter/current next null byte)
+          } while (delimited);                 // LOOP
 
-          mvaddstr(1 + i, x, output_cursor);
-          if (oattr)
+          mvaddstr(1 + i, x, output_cursor);            // Write output_cursor to ncurses window, up to first null byte -- former "$" of "$ATTR("
+          if (oattr)                                    // Turn off any lingering attributes from before this call
             attroff(oattr);
-          if (attr)
+          if (attr)                                     // Turn on any new attributes
             attron(attr);
-          x += strlen(output_cursor);
-          special_end++;
-          output_cursor = special_end;
+          x += strlen(output_cursor);                   // Move x to the end of what we just wrote, as to not clobber it later
+          special_end++;                                // Move special_end one character to the right (just after ")" of "$ATTR(")
+          output_cursor = special_end;                  // Move output_cursor to special_en
         }
         else
-          mvaddstr(1 + i, x, output_cursor);
+          mvaddstr(1 + i, x, output_cursor);                // Otherwise,j ust add the whole line to the window
       }
       else
-        mvaddstr(1 + i, x, output_cursor);
-    } while (line_incomplete);
-    free(banner_line);
+        mvaddstr(1 + i, x, output_cursor);                  // Otherwise, just add the whole line to the window
+    } while (line_incomplete);                         // LOOP
+    free(banner_line);                                 // Important! Free memory allocated by strdup()
   }
 }
 
