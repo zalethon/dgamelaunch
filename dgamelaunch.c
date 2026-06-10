@@ -640,74 +640,107 @@ loadbanner (char *fname, struct dg_banner *ban) {
   fclose (bannerfile);
 }
 
-void
-drawbanner (struct dg_banner *ban)
+void drawbanner(struct dg_banner *ban)
 {
   unsigned int i;
   char *tmpch, *tmpch2, *splch;
   int attr = 0, oattr = 0;
 
-  if (!ban) return;
+  if (!ban)
+    return;
 
-  for (i = 0; i < ban->len; i++) {
-      char *tmpbuf = strdup(ban->lines[i]);
-      char *tmpbuf2 = tmpbuf;
-      int ok = 0;
-      int x = 1;
-      do {
-	  ok = 0;
-	  if ((tmpch = strstr(tmpbuf2, "$ATTR("))) {
-	      if ((tmpch2 = strstr(tmpch, ")"))) {
-		  int spl = 0;
-		  char *nxttmpch;
-		  ok = 1;
-		  oattr = attr;
-		  attr = A_NORMAL;
-		  *tmpch = *tmpch2 = '\0';
-		  tmpch += 6;
-		  nxttmpch = tmpch;
-		  do {
-		      spl = 0;
-		      splch = strchr(tmpch, ';');
-		      if (splch && *splch) {
-			  spl = 1;
-			  nxttmpch = splch;
-			  *nxttmpch = '\0';
-			  nxttmpch++;
-		      }
-		      if (tmpch && *tmpch) {
-			  switch (*tmpch) {
-			  default: break;
-			  case '0': case '1': case '2': case '3': case '4':
-			  case '5': case '6': case '7': case '8': case '9':
-			      {
-				  int num = atoi(tmpch);
-				  if (num >= 0 && num <= 15)
-				      attr |= color_remap[num];
-			      }
-			      break;
-			  case 'b': attr |= A_BOLD; break;
-			  case 's': attr |= A_STANDOUT; break;
-			  case 'u': attr |= A_UNDERLINE; break;
-			  case 'r': attr |= A_REVERSE; break;
-			  case 'd': attr |= A_DIM; break;
-			  }
-		      } else attr = A_NORMAL;
-		      tmpch = nxttmpch;
-		  } while (spl);
+  for (i = 0; i < ban->len; i++)
+  {
+    char *tmpbuf = strdup(ban->lines[i]);
+    char *tmpbuf2 = tmpbuf;
+    int ok = 0;
+    int x = 1;
+    do
+    {
+      ok = 0;
+      if ((tmpch = strstr(tmpbuf2, "$ATTR(")))
+      {
+        if ((tmpch2 = strstr(tmpch, ")")))
+        {
+          int spl = 0;
+          char *nxttmpch;
+          ok = 1;
+          oattr = attr;
+          attr = A_NORMAL;
+          *tmpch = *tmpch2 = '\0';
+          tmpch += 6;
+          nxttmpch = tmpch;
+          do
+          {
+            spl = 0;
+            splch = strchr(tmpch, ';');
+            if (splch && *splch)
+            {
+              spl = 1;
+              nxttmpch = splch;
+              *nxttmpch = '\0';
+              nxttmpch++;
+            }
+            if (tmpch && *tmpch)
+            {
+              switch (*tmpch)
+              {
+              default:
+                break;
+              case '0':
+              case '1':
+              case '2':
+              case '3':
+              case '4':
+              case '5':
+              case '6':
+              case '7':
+              case '8':
+              case '9':
+              {
+                int num = atoi(tmpch);
+                if (num >= 0 && num <= 15)
+                  attr |= color_remap[num];
+              }
+              break;
+              case 'b':
+                attr |= A_BOLD;
+                break;
+              case 's':
+                attr |= A_STANDOUT;
+                break;
+              case 'u':
+                attr |= A_UNDERLINE;
+                break;
+              case 'r':
+                attr |= A_REVERSE;
+                break;
+              case 'd':
+                attr |= A_DIM;
+                break;
+              }
+            }
+            else
+              attr = A_NORMAL;
+            tmpch = nxttmpch;
+          } while (spl);
 
-		  mvaddstr(1 + i, x, tmpbuf2);
-		  if (oattr) attroff(oattr);
-		  if (attr) attron(attr);
-		  x += strlen(tmpbuf2);
-		  tmpch2++;
-		  tmpbuf2 = tmpch2;
-	      } else
-		  mvaddstr (1 + i, x, tmpbuf2);
-	  } else
-	      mvaddstr (1 + i, x, tmpbuf2);
-      } while (ok);
-      free(tmpbuf);
+          mvaddstr(1 + i, x, tmpbuf2);
+          if (oattr)
+            attroff(oattr);
+          if (attr)
+            attron(attr);
+          x += strlen(tmpbuf2);
+          tmpch2++;
+          tmpbuf2 = tmpch2;
+        }
+        else
+          mvaddstr(1 + i, x, tmpbuf2);
+      }
+      else
+        mvaddstr(1 + i, x, tmpbuf2);
+    } while (ok);
+    free(tmpbuf);
   }
 }
 
