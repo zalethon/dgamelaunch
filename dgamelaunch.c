@@ -718,6 +718,9 @@ void drawbanner(struct dg_banner *ban)
               case 'd':
                 attr |= A_DIM;
                 break;
+              case 'f':
+                attr |= A_BLINK;
+                break;
               }
             }
             else
