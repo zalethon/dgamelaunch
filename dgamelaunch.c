@@ -136,22 +136,22 @@ static struct dg_watchcols default_watchcols[] = {
 };
 
 int color_remap[16] = {
-    COLOR_PAIR(9) | A_NORMAL,
-    COLOR_PAIR(COLOR_BLUE) | A_NORMAL,
-    COLOR_PAIR(COLOR_GREEN) | A_NORMAL,
-    COLOR_PAIR(COLOR_CYAN) | A_NORMAL,
-    COLOR_PAIR(COLOR_RED) | A_NORMAL,
-    COLOR_PAIR(COLOR_MAGENTA) | A_NORMAL,
-    COLOR_PAIR(COLOR_YELLOW) | A_NORMAL,
-    COLOR_PAIR(COLOR_BLACK) | A_NORMAL,
-    COLOR_PAIR(10) | A_BOLD,
-    COLOR_PAIR(COLOR_BLUE) | A_BOLD,
-    COLOR_PAIR(COLOR_GREEN) | A_BOLD,
-    COLOR_PAIR(COLOR_CYAN) | A_BOLD,
-    COLOR_PAIR(COLOR_RED) | A_BOLD,
-    COLOR_PAIR(COLOR_MAGENTA) | A_BOLD,
-    COLOR_PAIR(COLOR_YELLOW) | A_BOLD,
-    COLOR_PAIR(COLOR_WHITE) | A_BOLD,
+    COLOR_PAIR(1) | A_NORMAL,
+    COLOR_PAIR(color_pair_idx(COLOR_BLUE, COLOR_BLACK)) | A_NORMAL,
+    COLOR_PAIR(color_pair_idx(COLOR_GREEN, COLOR_BLACK)) | A_NORMAL,
+    COLOR_PAIR(color_pair_idx(COLOR_CYAN, COLOR_BLACK)) | A_NORMAL,
+    COLOR_PAIR(color_pair_idx(COLOR_RED, COLOR_BLACK)) | A_NORMAL,
+    COLOR_PAIR(color_pair_idx(COLOR_MAGENTA, COLOR_BLACK)) | A_NORMAL,
+    COLOR_PAIR(color_pair_idx(COLOR_YELLOW, COLOR_BLACK)) | A_NORMAL,
+    COLOR_PAIR(color_pair_idx(COLOR_BLACK, COLOR_BLACK)) | A_NORMAL,
+    COLOR_PAIR(1) | A_BOLD,
+    COLOR_PAIR(color_pair_idx(COLOR_BLUE, COLOR_BLACK)) | A_BOLD,
+    COLOR_PAIR(color_pair_idx(COLOR_GREEN, COLOR_BLACK)) | A_BOLD,
+    COLOR_PAIR(color_pair_idx(COLOR_CYAN, COLOR_BLACK)) | A_BOLD,
+    COLOR_PAIR(color_pair_idx(COLOR_RED, COLOR_BLACK)) | A_BOLD,
+    COLOR_PAIR(color_pair_idx(COLOR_MAGENTA, COLOR_BLACK)) | A_BOLD,
+    COLOR_PAIR(color_pair_idx(COLOR_YELLOW, COLOR_BLACK)) | A_BOLD,
+    COLOR_PAIR(color_pair_idx(COLOR_WHITE, COLOR_BLACK)) | A_BOLD,
 };
 
 static struct dg_watchcols *default_watchcols_list[DGL_MAXWATCHCOLS + 1];
@@ -1911,6 +1911,7 @@ freefile ()
 void
 initcurses ()
 {
+  int i, j
   printf("\033[2J");
   if (newterm(NULL, stdout, stdin) == NULL) {
       if (!globalconfig.defterm || (newterm(globalconfig.defterm, stdout, stdin) == NULL)) {
@@ -1924,24 +1925,30 @@ initcurses ()
   nonl ();
   intrflush (stdscr, FALSE);
   keypad (stdscr, TRUE);
-#ifdef USE_NCURSES_COLOR
+// #ifdef USE_NCURSES_COLOR
   start_color();
   use_default_colors();
 
   init_pair(COLOR_BLACK, COLOR_WHITE, COLOR_BLACK);     // 0  -> 7
-  init_pair(COLOR_RED, COLOR_RED, COLOR_BLACK);         // 1  -> 4
-  init_pair(COLOR_GREEN, COLOR_GREEN, COLOR_BLACK);     // 2  -> 2
-  init_pair(COLOR_YELLOW, COLOR_YELLOW, COLOR_BLACK);   // 3  -> 6
-  init_pair(COLOR_BLUE, COLOR_BLUE, COLOR_BLACK);       // 4  -> 1
-  init_pair(COLOR_MAGENTA, COLOR_MAGENTA, COLOR_BLACK); // 5  -> 5
-  init_pair(COLOR_CYAN, COLOR_CYAN, COLOR_BLACK);       // 6  -> 3
-  init_pair(COLOR_WHITE, COLOR_WHITE, COLOR_BLACK);     // 7  -> 
-  init_pair(9, 0, COLOR_BLACK);                         // 9  -> 0 (black on black?)
-  init_pair(10, COLOR_BLACK, COLOR_BLACK);              // 10 -> 8
-  init_pair(11, -1, -1);                                // 11 -> 
-
+  // init_pair(COLOR_RED, COLOR_RED, COLOR_BLACK);         // 1  -> 4
+  // init_pair(COLOR_GREEN, COLOR_GREEN, COLOR_BLACK);     // 2  -> 2
+  // init_pair(COLOR_YELLOW, COLOR_YELLOW, COLOR_BLACK);   // 3  -> 6
+  // init_pair(COLOR_BLUE, COLOR_BLUE, COLOR_BLACK);       // 4  -> 1
+  // init_pair(COLOR_MAGENTA, COLOR_MAGENTA, COLOR_BLACK); // 5  -> 5
+  // init_pair(COLOR_CYAN, COLOR_CYAN, COLOR_BLACK);       // 6  -> 3
+  // init_pair(COLOR_WHITE, COLOR_WHITE, COLOR_BLACK);     // 7  -> 
+  // init_pair(9, 0, COLOR_BLACK);                         // 9  -> 0 (black on black?)
+  // init_pair(10, COLOR_BLACK, COLOR_BLACK);              // 10 -> 8
+  // init_pair(11, -1, -1);                                // 11 -> 
+  for (i = 0; i <= 7; i++)
+  {
+    for (j = 0; j <= 7; j++)
+    {
+      init_pair(color_pair_idx(i, j), i, j);
+    }
+  }
   if (globalconfig.utf8esc) (void) write(1, "\033%G", 3);
-#endif
+// #endif
   clear();
   refresh();
 }
