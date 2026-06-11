@@ -634,7 +634,7 @@ int remap_attr_string(char *s)
     case '5': case '6': case '7': case '8': case '9':
     {
       int num = atoi(s);
-      if (num >= 0 && num <= 15)
+      if (num >= 0 && num <= 129)
         attr |= COLOR_PAIR(num+1);
     }
     break;
