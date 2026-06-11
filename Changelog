@@ -1,19 +1,28 @@
-1.6.1-roc (2026)
+1.6.1-roc-jul
+    * Banner (Menu) Files
+	  * $ATTR() now takes numbers > 15 -- they are the same colors against
+	    all "normal" (no-dim/no-bold) backgrounds. There are now 130 color
+		pairs in total, including 0 and 129 which are white-on-black and
+		whatever the user's terminal's default fg/bg combo is, respectively.
+	  * $ATTR() now accepts/turns an "blink" attribute, using character 'f'
+	    for flash (since b was already taken by blink).
+	  * Fixed lingering error in original and 1.6.1-roc dgamelaunch.conf, which
+	    incorrectly instructed users to use ':' rather than ';' as a delimiter
+		in $ATTR() replacements.
+1.6.1-roc-jun (2026)
 	* Banner (Menu) Files
 	  * Changed loadbanner() [dgamelaunch.c] -- $INCLUDE() can now be
 	    anywhere in a line.
 	  * $VERSION now replaced with PACKAGE_VERSION instead of
-	    PACKAGE_STRING
+	    PACKAGE_STRING.
 	  * Banner files can be longer than 24 lines, if the window size is
 	    long enough.
 	* Meta
 	  * Self-reported version now includes git tag and/or commit hash.
 	  * Forked noisytoot repository and merged changes in paxed's repo
 	    since last merge.
-
-
-        * Merged "crawl-specific" character handling from crawl repo (maybe it
-          will be useful for older versions of DCSS?)
+      * Merged "crawl-specific" character handling from crawl repo (maybe it
+        will be useful for older versions of DCSS?)
 
 1.6.0-hdf (2024 - noisytoot fork, recorded here 2026 by skyebee)
 	* Fixed various buildtime warnings in ee, and minor errors in autoconf
