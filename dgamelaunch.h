@@ -28,15 +28,14 @@
 #define DGL_BANNER_LINELEN 256 /* max. length of banner lines*/
 
 #ifdef USE_NCURSES_COLOR
-# define CLR_NORMAL  COLOR_PAIR(11)   | A_NORMAL
-# define CLR_RED     COLOR_PAIR(COLOR_RED)   | A_NORMAL
-# define CLR_GREEN   COLOR_PAIR(COLOR_GREEN) | A_NORMAL
+# define CLR_NORMAL  COLOR_PAIR(129)   | A_NORMAL
+# define CLR_RED     COLOR_PAIR(5)   | A_NORMAL
+# define CLR_GREEN   COLOR_PAIR(3) | A_NORMAL
 #else
 # define CLR_NORMAL  0
 # define CLR_RED     0
 # define CLR_GREEN   0
 #endif
-extern int color_remap[];
 
 typedef enum
 {
@@ -304,6 +303,7 @@ extern char *gen_ttyrec_filename(void);
 extern char *gen_inprogress_lock(int game, pid_t pid, char *ttyrec_filename);
 extern void catch_sighup(int signum);
 extern void loadbanner(char *fname, struct dg_banner *ban);
+extern int remap_attr_string(char *s);
 extern void drawbanner(struct dg_banner *ban);
 extern void banner_var_add(char *name, char *value, int special);
 extern char *banner_var_value(char *name);
@@ -351,6 +351,7 @@ extern void domailuser(char *username);
 extern void drawmenu(void);
 extern void freefile(void);
 extern void initcurses(void);
+extern int color_pair_idx(int fg, int bg);
 extern void loginprompt(int from_ttyplay);
 extern void newuser(void);
 extern void autologin(char *user, char *pass);
