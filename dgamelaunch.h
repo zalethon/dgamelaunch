@@ -28,15 +28,14 @@
 #define DGL_BANNER_LINELEN 256 /* max. length of banner lines*/
 
 #ifdef USE_NCURSES_COLOR
-# define CLR_NORMAL  COLOR_PAIR(11)   | A_NORMAL
-# define CLR_RED     COLOR_PAIR(COLOR_RED)   | A_NORMAL
-# define CLR_GREEN   COLOR_PAIR(COLOR_GREEN) | A_NORMAL
+# define CLR_NORMAL  COLOR_PAIR(129)   | A_NORMAL
+# define CLR_RED     COLOR_PAIR(5)   | A_NORMAL
+# define CLR_GREEN   COLOR_PAIR(3) | A_NORMAL
 #else
 # define CLR_NORMAL  0
 # define CLR_RED     0
 # define CLR_GREEN   0
 #endif
-extern int color_remap[];
 
 typedef enum
 {
